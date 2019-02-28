@@ -12,7 +12,7 @@ from DELIMIT.SphericalHarmonicTransformation import Signal2SH
 class BLSA(data.Dataset):
     """Dataset class for the CelebA dataset."""
 
-    def __init__(self, data_info, selected_attrs, crop_size):
+    def __init__(self, data_info, selected_attrs, crop_size, SH_convert, SH_order):
         """Initialize and preprocess the CelebA dataset."""
 
         self.selected_attrs = selected_attrs
@@ -21,6 +21,8 @@ class BLSA(data.Dataset):
         self.idx2attr = {}
         self.crop_size = crop_size
         self.parse_data(data_info)
+        self.SH_convert = SH_convert
+        self.SH_order = SH_order
 
         self.num_images = len(self.dataset)
 
@@ -51,22 +53,29 @@ class BLSA(data.Dataset):
                 else:
                     self.dataset[scanner] = [path]
 
-
-    def load_image(self, path, scanner):
-
-        image = nib.load(path).get_fdata()
+    
+    def get_SH(self, image, order, gradients_path):
         b0 = np.expand_dims(image[:,:,:,0], axis=3)
         image = np.divide(image, b0)[:,:,:,1:].astype('float64')
         image[np.isnan(image)] = 0
 
-        gradient_path = '/'.join(path.split('/')[0:-1]) + '/dwmri.bvec'
-        gradient_dirs = np.transpose(np.loadtxt(gradient_path))[1:,:].astype('float64')
+        gradient_dirs = np.transpose(np.loadtxt(gradients_path))[1:,:].astype('float64')
 
         SH = Signal2SH(4, gradient_dirs)
 
         image = image.transpose((3, 0, 1, 2))
         image = SH.forward(torch.from_numpy(np.expand_dims(image, axis=0)))
         image = image.type(torch.FloatTensor).squeeze()
+
+    def load_image(self, path, scanner):
+
+        image = nib.load(path).get_fdata()
+        
+        if self.SH_convert:
+            gradients_path = '/'.join(path.split('/')[0:-1]) + '/dwmri.bvec'
+            image = self.get_SH(image, self.SH_order, gradients_path)
+        else:
+            image = image.transpose((3, 0, 1, 2)).astype('float32')
 
         # dim = max(image.shape)
         # for i in range(1,len(image.shape)):
@@ -102,9 +111,9 @@ class BLSA(data.Dataset):
 
 
 def get_loader(data_info, selected_attrs, crop_size=48, image_size=128,
-               batch_size=16, mode='train', num_workers=1):
+               batch_size=16, mode='train', num_workers=1, SH_convert=True, SH_order=4):
     """Build and return a data loader."""
-    dataset = BLSA(data_info, selected_attrs, crop_size)
+    dataset = BLSA(data_info, selected_attrs, crop_size, SH_convert, SH_order)
 
 
     data_loader = data.DataLoader(dataset=dataset,

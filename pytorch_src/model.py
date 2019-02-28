@@ -49,7 +49,7 @@ class Generator(nn.Module):
             curr_dim = curr_dim // 2
 
         layers.append(nn.Conv3d(curr_dim, 15, kernel_size=7, stride=1, padding=3, bias=False))
-        layers.append(nn.Tanh())
+        #layers.append(nn.Tanh())
         self.main = nn.Sequential(*layers)
 
     def forward(self, x, c):

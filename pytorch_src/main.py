@@ -24,7 +24,7 @@ def main(config):
 
     loader = get_loader(config.data_file, config.selected_attrs,
                                    config.crop_size, config.image_size, config.batch_size,
-                                   config.mode, config.num_workers)
+                                   config.mode, config.num_workers, config.SH_convert, config.SH_order)
     
 
     # Solver for training and testing StarGAN.
@@ -47,8 +47,8 @@ if __name__ == '__main__':
     parser.add_argument('--image_size', type=int, default=48, help='image resolution')
     parser.add_argument('--g_conv_dim', type=int, default=16, help='number of conv filters in the first layer of G')
     parser.add_argument('--d_conv_dim', type=int, default=16, help='number of conv filters in the first layer of D')
-    parser.add_argument('--g_repeat_num', type=int, default=5, help='number of residual blocks in G')
-    parser.add_argument('--d_repeat_num', type=int, default=5, help='number of strided conv layers in D')
+    parser.add_argument('--g_repeat_num', type=int, default=1, help='number of residual blocks in G')
+    parser.add_argument('--d_repeat_num', type=int, default=1, help='number of strided conv layers in D')
     parser.add_argument('--lambda_cls', type=float, default=1, help='weight for domain classification loss')
     parser.add_argument('--lambda_rec', type=float, default=1, help='weight for reconstruction loss')
     parser.add_argument('--lambda_gp', type=float, default=1, help='weight for gradient penalty')
@@ -59,12 +59,14 @@ if __name__ == '__main__':
     parser.add_argument('--num_iters_decay', type=int, default=100000, help='number of iterations for decaying lr')
     parser.add_argument('--g_lr', type=float, default=0.0001, help='learning rate for G')
     parser.add_argument('--d_lr', type=float, default=0.0001, help='learning rate for D')
-    parser.add_argument('--n_critic', type=int, default=20, help='number of D updates per each G update')
+    parser.add_argument('--n_critic', type=int, default=1, help='number of D updates per each G update')
     parser.add_argument('--beta1', type=float, default=0.5, help='beta1 for Adam optimizer')
     parser.add_argument('--beta2', type=float, default=0.999, help='beta2 for Adam optimizer')
     parser.add_argument('--resume_iters', type=int, default=None, help='resume training from this step')
     parser.add_argument('--selected_attrs', '--list', nargs='+', help='selected attributes for the CelebA dataset',
                         default=['Scanner 1', 'Scanner 2', 'Scanner 3', 'Scanner 4'])
+    parser.add_argument('--SH_convert', type=bool, default=False, help='dwi needs to be converted to spherical harmonics')
+    parser.add_argument('--SH_order', type=int, default=4, help='the order of the spherical harmonics function')
 
     # Test configuration.
     parser.add_argument('--test_iters', type=int, default=200000, help='test model from this step')
@@ -75,11 +77,11 @@ if __name__ == '__main__':
     parser.add_argument('--use_tensorboard', type=str2bool, default=True)
 
     # Directories.
-    parser.add_argument('--data_file', type=str, default='data.csv')
-    parser.add_argument('--log_dir', type=str, default='stargan/logs')
-    parser.add_argument('--model_save_dir', type=str, default='stargan/models')
-    parser.add_argument('--sample_dir', type=str, default='stargan/samples')
-    parser.add_argument('--result_dir', type=str, default='stargan/results')
+    parser.add_argument('--data_file', type=str, default='../data.csv')
+    parser.add_argument('--log_dir', type=str, default='/home/hansencb/dwmri_stargan_out/logs')
+    parser.add_argument('--model_save_dir', type=str, default='/home/hansencb/dwmri_stargan_out/models')
+    parser.add_argument('--sample_dir', type=str, default='/home/hansencb/dwmri_stargan_out/samples')
+    parser.add_argument('--result_dir', type=str, default='/home/hansencb/dwmri_stargan_out/results')
 
     # Step size.
     parser.add_argument('--log_step', type=int, default=1)
