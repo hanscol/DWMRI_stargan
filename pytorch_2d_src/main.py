@@ -78,10 +78,10 @@ if __name__ == '__main__':
 
     # Directories.
     parser.add_argument('--data_file', type=str, default='../data.csv')
-    parser.add_argument('--log_dir', type=str, default='dwmri_stargan_out/logs')
-    parser.add_argument('--model_save_dir', type=str, default='dwmri_stargan_out/models')
-    parser.add_argument('--sample_dir', type=str, default='dwmri_stargan_out/samples')
-    parser.add_argument('--result_dir', type=str, default='dwmri_stargan_out/results')
+    parser.add_argument('--log_dir', type=str, default='/home/hansencb/dwmri_stargan_out/logs')
+    parser.add_argument('--model_save_dir', type=str, default='/home/hansencb/dwmri_stargan_out/models')
+    parser.add_argument('--sample_dir', type=str, default='/home/hansencb/dwmri_stargan_out/samples')
+    parser.add_argument('--result_dir', type=str, default='/home/hansencb/dwmri_stargan_out/results')
 
     # Step size.
     parser.add_argument('--log_step', type=int, default=100)

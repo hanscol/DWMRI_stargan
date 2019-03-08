@@ -4,12 +4,13 @@ from torchvision.datasets import ImageFolder
 from PIL import Image
 import numpy as np
 import torch
+import torch.nn.functional as F
 import os
 import random
 import nibabel as nib
 from DELIMIT.SphericalHarmonicTransformation import Signal2SH
 
-class BLSA(data.Dataset):
+class DWMRI_dataset(data.Dataset):
     """Dataset class for the CelebA dataset."""
 
     def __init__(self, data_info, selected_attrs, crop_size, SH_convert, SH_order):
@@ -38,7 +39,6 @@ class BLSA(data.Dataset):
 
         return img
 
-
     def parse_data(self, data_info):
         with open(data_info) as f:
             lines = f.readlines()
@@ -58,6 +58,7 @@ class BLSA(data.Dataset):
     def get_SH(self, image, order, gradients_path):
         b0 = np.expand_dims(image[:,:,:,0], axis=3)
         image = np.divide(image, b0)[:,:,:,1:].astype('float64')
+
         image[np.isnan(image)] = 0
 
         gradient_dirs = np.transpose(np.loadtxt(gradients_path))[1:,:].astype('float64')
@@ -94,9 +95,12 @@ class BLSA(data.Dataset):
             self.scanner = random.randint(0,len(self.dataset.keys())-1)
             self.filename = self.dataset[self.scanner][random.randint(0,len(self.dataset[self.scanner])-1)]
             self.image, self.label = self.load_image(self.filename, self.scanner)
-        patch = self.randomCrop(self.image)
+            self.image = torch.from_numpy(self.image)
+            self.image = F.interpolate(self.image.unsqueeze(0), size=(96, 96, self.image.shape[-1])).squeeze()
+        # patch = self.randomCrop(self.image)
 
-        return patch, self.label, self.filename
+        z = random.randint(0,self.image.shape[-1]-1)
+        return self.image[:,:,:,z], self.label, self.filename
 
     def __len__(self):
         """Return the number of images."""
@@ -106,7 +110,7 @@ class BLSA(data.Dataset):
 def get_loader(data_info, selected_attrs, crop_size=48, image_size=128,
                batch_size=16, mode='train', num_workers=1, SH_convert=True, SH_order=4):
     """Build and return a data loader."""
-    dataset = BLSA(data_info, selected_attrs, crop_size, SH_convert, SH_order)
+    dataset = DWMRI_dataset(data_info, selected_attrs, crop_size, SH_convert, SH_order)
 
 
     data_loader = data.DataLoader(dataset=dataset,

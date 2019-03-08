@@ -1,4 +1,4 @@
-from model import Generator, UGenerator
+from model import UGenerator
 from model import Discriminator
 from torch.autograd import Variable
 from torchvision.utils import save_image
